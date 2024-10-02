@@ -113,7 +113,6 @@ def TEKI(func, K, args, y, R, mu, B, min_rmse = 1, tol_x = 0.0001, tol_f = 0.000
 
     N_t = len(mu)
 
-    (N_t, K) = u_0.shape  #parameter space size, ensemble size
     y_len = len(y)
     u = np.zeros((max_iter + 1, N_t, K))    #initialize parameter ensemble
     u[0] = np.random.normal(0, 1, size = (N_t,K))
