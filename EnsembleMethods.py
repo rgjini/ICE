@@ -63,18 +63,15 @@ def matrix_sqrt(A):
     [u_a, l_a, q_a] = svd(A)  
     return (u_a*np.sqrt(l_a))@u_a.T
     
-def TEKI(func, u_0, args, y, R, mu, B, min_rmse = 1, tol_x = 0.0001, tol_f = 0.0001, 
+def TEKI(func, K, args, y, R, mu, B, min_rmse = 1, tol_x = 0.0001, tol_f = 0.0001, 
          method = "all", max_iter = 10e2):
     '''
     TEKI algorithm from Chada et al. 2019
 
     func: function 
         forward model function that is compared to the data
-    u_0: list of floats 2D array
-        array of intial ensemble members to be updated throught the algorithm (n,k)
-        must be distributed mean zero, covariance I (whiten before running)
-        n -> number of parameters 
-        k -> number of ensemble members
+    K: integer 
+        number of ensemble members to use
     args: tuple of variables?
         tuple of additional variables that are passed into the function
     y: list of floats array
@@ -114,10 +111,12 @@ def TEKI(func, u_0, args, y, R, mu, B, min_rmse = 1, tol_x = 0.0001, tol_f = 0.0
     ''' 
     exit = 0 # exit criteria 
 
+    N_t = len(mu)
+
     (N_t, K) = u_0.shape  #parameter space size, ensemble size
     y_len = len(y)
     u = np.zeros((max_iter + 1, N_t, K))    #initialize parameter ensemble
-    u[0] = u_0
+    u[0] = np.random.normal(0, 1, size = (N_t,K))
     #Compute needed matrices
     Rsq_inv = matrix_inv_sqrt(R)
     Bsq = matrix_sqrt(B)
@@ -185,4 +184,4 @@ def TEKI(func, u_0, args, y, R, mu, B, min_rmse = 1, tol_x = 0.0001, tol_f = 0.0
                 exit = 3
                 break
     #Note to self - check to make sure that you can switch the format of the lorenz function
-    return (Bsq@u[i + 1] + mu[:,np.newaxis]), (i+1)*K, exit
+    return (Bsq@u[i + 1] + mu[:,np.newaxis]), (i+1)*K, Cgg, exit
