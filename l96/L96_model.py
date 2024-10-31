@@ -90,7 +90,7 @@ def G(x_0, t, T, H, gamma):
     '''
 
     #run runge_kutta scheme, select last value at the end
-    return H@(runge_kutta_v(x_0, t, T, gamma)[-1])
+    return (runge_kutta_v(x_0, t, T, gamma)[-1])
 
 def r(x_0, t, T, H, gamma, y, Rinv_sqrt, mu, Bsqrt): 
     '''
