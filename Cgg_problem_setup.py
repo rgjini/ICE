@@ -1,11 +1,8 @@
 import numpy as np
 from numpy.linalg import cholesky, solve, norm, svd
-import tensorflow as tf
-import tensorflow_probability as tfp
 import EnsembleMethods as EKA
 import l96.L96_model as l96
 import matplotlib.pyplot as plt
-tfd = tfp.distributions
 
 path = 'l96/'
 np.random.seed(42)  #initialize random seed
@@ -30,7 +27,7 @@ def model_setup():
 nx, t, T, H, gamma, y, R, mu, B = model_setup()
 
 #Intitializing EKI ensemble 
-K = 1000         #number of ensemble members
+K = 100         #number of ensemble members
 max_iter = 1   #set a maximum number of runs 
 N_t = nx       
 
@@ -64,23 +61,33 @@ Cgg = np.cov(g)                                    #Cyy
 
 plt.figure()
 plt.imshow(Cgg)
+plt.title('Ensemble Empirical Estimate')
 plt.colorbar()
-plt.show()
+plt.show(block = False)
 
-kernel = tfp.math.psd_kernels.ExponentiatedQuadratic()
-xs = np.random.normal(0, 1, size = (N_t,10000))
+import gpflow
+import tensorflow as tf
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 
-gprm = tfd.GaussianProcessRegressionModel(
-    kernel=kernel,
-    observation_index_points=u[0].T,
-    observations=g,
-    index_points=xs.T,
-    observation_noise_variance=0.1
+model = gpflow.models.GPR(
+    (u[0].T, g.T),
+    kernel=gpflow.kernels.Matern52(), noise_variance=1e-3
 )
+# Fit the model
+opt = gpflow.optimizers.Scipy()
+opt.minimize(model.training_loss, model.trainable_variables)
 
-GP_Cgg = np.cov(gprm.sample())
+
+xs = np.random.normal(0, 1, size = (N_t,100000))
+ys, _ = model.predict_f(xs.T, full_output_cov = False)  #full_output_cov = True not supported??
+
+print(ys.shape)
+
+GP_Cgg = np.cov(ys.T)
+
 plt.figure()
 plt.imshow(GP_Cgg)
+plt.title('GP Empirical Estimate')
 plt.colorbar()
 plt.show()
 
